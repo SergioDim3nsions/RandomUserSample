@@ -7,11 +7,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.dim3nsions.arch.sample.R
-import com.dim3nsions.arch.sample.network.RestManager
-import org.jetbrains.anko.doAsync
-import org.jetbrains.anko.support.v4.runOnUiThread
+import com.dim3nsions.arch.sample.main.presenter.IMainView
+import com.dim3nsions.arch.sample.main.presenter.MainPresenter
+import com.dim3nsions.arch.sample.model.User
 
-class MainFragment : Fragment() {
+class MainFragment : Fragment(), IMainView {
+
+    lateinit var presenter: MainPresenter
 
     companion object {
         const val FRAGMENT_TAG = "MainFragment"
@@ -31,14 +33,26 @@ class MainFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        presenter = MainPresenter()
+        presenter.onCreate(this)
+        presenter.getUsers()
+    }
 
-        doAsync {
-            val response = RestManager.instance.getService().getUsers().execute().body()
-            runOnUiThread {
-                response?.let {
-                    Log.d("BODY", it.results[0].email)
-                }
-            }
-        }
+    override fun onResume() {
+        super.onResume()
+        presenter.onResume(this)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        presenter.onDestroy()
+    }
+
+    override fun loadUsers(users: List<User>) {
+        Log.d("MainFragment", users[0].email)
+    }
+
+    override fun showError(message: String) {
+        Log.d("MainFragment", message)
     }
 }
